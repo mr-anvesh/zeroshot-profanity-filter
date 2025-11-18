@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profanity Filter - AI-Powered Content Moderation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ AI Profanity Filter</h1>
+            <p class="subtitle">Uses a zero-shot classifier to classify texts</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="filter">Filter Text</button>
+                    <button class="tab-button" data-tab="check">Check Only</button>
+                </div>
+
+                <!-- Filter Tab -->
+                <div id="filter-tab" class="tab-content active">
+                    <div class="input-section">
+                        <label for="filter-input">Enter text to filter:</label>
+                        <textarea 
+                            id="filter-input" 
+                            placeholder="Type or paste your text here..."
+                            rows="6"
+                        ></textarea>
+                        
+                        <div class="controls">
+                            <div class="control-group">
+                                <label for="filter-mode">Filter Mode:</label>
+                                <select id="filter-mode">
+                                    <option value="full">Full - Censor entire text</option>
+                                    <option value="word">Word - Censor by sentence</option>
+                                    <option value="aggressive">Aggressive - Show warning</option>
+                                </select>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label for="filter-threshold">Sensitivity: <span id="filter-threshold-value">0.5</span></label>
+                                <input 
+                                    type="range" 
+                                    id="filter-threshold" 
+                                    min="0.1" 
+                                    max="0.9" 
+                                    step="0.1" 
+                                    value="0.5"
+                                >
+                            </div>
+                        </div>
+                        
+                        <button id="filter-button" class="primary-button">
+                            <span class="button-text">Filter Text</span>
+                            <span class="spinner hidden"></span>
+                        </button>
+                    </div>
+
+                    <div id="filter-result" class="result-section hidden">
+                        <h3>Results:</h3>
+                        <div class="result-card">
+                            <div class="result-item">
+                                <strong>Original Text:</strong>
+                                <p id="filter-original" class="result-text"></p>
+                            </div>
+                            <div class="result-item">
+                                <strong>Filtered Text:</strong>
+                                <p id="filter-filtered" class="result-text filtered"></p>
+                            </div>
+                            <div class="result-stats">
+                                <div class="stat-badge" id="filter-profane-badge">
+                                    <span class="stat-label">Status:</span>
+                                    <span id="filter-profane" class="stat-value"></span>
+                                </div>
+                                <div class="stat-badge">
+                                    <span class="stat-label">Confidence:</span>
+                                    <span id="filter-confidence" class="stat-value"></span>
+                                </div>
+                                <div class="stat-badge">
+                                    <span class="stat-label">Classification:</span>
+                                    <span id="filter-label" class="stat-value"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Check Tab -->
+                <div id="check-tab" class="tab-content">
+                    <div class="input-section">
+                        <label for="check-input">Enter text to check:</label>
+                        <textarea 
+                            id="check-input" 
+                            placeholder="Type or paste your text here..."
+                            rows="6"
+                        ></textarea>
+                        
+                        <button id="check-button" class="primary-button">
+                            <span class="button-text">Check Text</span>
+                            <span class="spinner hidden"></span>
+                        </button>
+                    </div>
+
+                    <div id="check-result" class="result-section hidden">
+                        <h3>Analysis:</h3>
+                        <div class="result-card">
+                            <div class="result-item">
+                                <strong>Text Analyzed:</strong>
+                                <p id="check-text" class="result-text"></p>
+                            </div>
+                            <div class="result-stats">
+                                <div class="stat-badge large" id="check-profane-badge">
+                                    <span class="stat-label">Status:</span>
+                                    <span id="check-profane" class="stat-value large"></span>
+                                </div>
+                                <div class="stat-badge large">
+                                    <span class="stat-label">Confidence:</span>
+                                    <span id="check-confidence" class="stat-value large"></span>
+                                </div>
+                            </div>
+                            <div class="result-item">
+                                <strong>Classification:</strong>
+                                <p id="check-label" class="result-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error-message" class="error-message hidden"></div>
+            </div>
+
+            <div class="info-section">
+                <h3>ℹ️ About This Tool</h3>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4>🤖 AI-Powered</h4>
+                        <p>Uses a zero-shot classifier to classify texts</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🌍 Multilingual</h4>
+                        <p>Supports 100+ languages</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>⚡ Real-time</h4>
+                        <p>Instant analysis and filtering</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🎯 Accurate</h4>
+                        <p>Advanced text classification</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Made with ❤️ by Anvesh Mishra</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

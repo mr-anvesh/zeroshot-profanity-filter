@@ -16,12 +16,12 @@ class ProfanityFilter:
     and censor profane content.
     """
     
-    def __init__(self, model_path: str = "./", threshold: float = 0.5):
+    def __init__(self, model_path: str = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli", threshold: float = 0.5):
         """
         Initialize the profanity filter.
         
         Args:
-            model_path: Path to the model directory
+            model_path: Path to the model directory or Hugging Face model identifier
             threshold: Confidence threshold for profanity detection (0-1)
         """
         self.threshold = threshold
@@ -33,10 +33,10 @@ class ProfanityFilter:
         )
         print("Model loaded successfully!")
         
-        # Common profanity categories for classification
+        # Binary classification labels
         self.profanity_labels = [
-            "profane, vulgar, obscene, offensive language",
-            "clean, appropriate, respectful language"
+            "profane",
+            "non-profane"
         ]
     
     def is_profane(self, text: str) -> Dict:
@@ -49,31 +49,38 @@ class ProfanityFilter:
         Returns:
             Dictionary containing:
                 - is_profane: Boolean indicating if text is profane
-                - confidence: Confidence score for the classification
+                - profane_probability: Probability of being profane (0-1)
+                - non_profane_probability: Probability of being non-profane (0-1)
                 - label: The predicted label
         """
         if not text or not text.strip():
             return {
                 "is_profane": False,
-                "confidence": 0.0,
-                "label": "clean, appropriate, respectful language"
+                "profane_probability": 0.0,
+                "non_profane_probability": 1.0,
+                "label": "non-profane"
             }
         
         result = self.classifier(text, self.profanity_labels)
         
-        # Get the top prediction
-        top_label = result["labels"][0]
-        top_score = result["scores"][0]
+        # Get probabilities for both labels
+        labels = result["labels"]
+        scores = result["scores"]
         
-        is_profane = (
-            "profane" in top_label.lower() and 
-            top_score >= self.threshold
-        )
+        # Create a mapping of label to score
+        label_scores = dict(zip(labels, scores))
+        profane_prob = label_scores.get("profane", 0.0)
+        non_profane_prob = label_scores.get("non-profane", 0.0)
+        
+        # Determine if profane based on threshold
+        is_profane = profane_prob >= self.threshold
+        predicted_label = "profane" if is_profane else "non-profane"
         
         return {
             "is_profane": is_profane,
-            "confidence": top_score,
-            "label": top_label
+            "profane_probability": profane_prob,
+            "non_profane_probability": non_profane_prob,
+            "label": predicted_label
         }
     
     def censor_word(self, word: str) -> str:
@@ -149,7 +156,8 @@ class ProfanityFilter:
             "original": text,
             "filtered": filtered_text,
             "is_profane": check_result["is_profane"],
-            "confidence": check_result["confidence"],
+            "profane_probability": check_result["profane_probability"],
+            "non_profane_probability": check_result["non_profane_probability"],
             "label": check_result["label"]
         }
     
@@ -202,7 +210,9 @@ def main():
         print(f"Input: {text}")
         result = filter.filter(text, mode="full")
         print(f"Filtered: {result['filtered']}")
-        print(f"Profane: {result['is_profane']} (confidence: {result['confidence']:.2f})")
+        print(f"Profane: {result['is_profane']}")
+        print(f"Profane Probability: {result['profane_probability']:.3f}")
+        print(f"Non-Profane Probability: {result['non_profane_probability']:.3f}")
         print(f"Label: {result['label']}")
         print("-" * 70 + "\n")
     
@@ -223,7 +233,8 @@ def main():
         
         result = filter.filter(user_input, mode="full")
         print(f"\nFiltered output: {result['filtered']}")
-        print(f"Classification: {result['label']} (confidence: {result['confidence']:.2f})\n")
+        print(f"Classification: {result['label']}")
+        print(f"Profane: {result['profane_probability']:.3f} | Non-Profane: {result['non_profane_probability']:.3f}\n")
 
 
 if __name__ == "__main__":
