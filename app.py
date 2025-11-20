@@ -1,20 +1,27 @@
-"""
-Flask Backend for Profanity Filter
-Provides REST API endpoints for the profanity detection and filtering service.
-"""
-
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from profanity_filter import ProfanityFilter
+from image import ImageProfanityChecker
 import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
 
-# Initialize the profanity filter (loaded once at startup)
+# Configure upload folder
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
 print("Initializing profanity filter...")
 profanity_filter = ProfanityFilter(model_path="Anvesh18/zeroshot-profanity-filter", threshold=0.5)
 print("Profanity filter ready!")
+
+print("Initializing image profanity checker...")
+image_checker = ImageProfanityChecker()
+print("Image profanity checker ready!")
 
 
 @app.route('/')
@@ -113,7 +120,6 @@ def filter_text():
                 'error': 'Invalid mode. Must be one of: full, word, aggressive'
             }), 400
         
-        # Update threshold if different from current
         if threshold != profanity_filter.threshold:
             profanity_filter.threshold = threshold
         
@@ -128,12 +134,75 @@ def filter_text():
         }), 500
 
 
+def allowed_file(filename):
+    """Check if file extension is allowed."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/api/check-image', methods=['POST'])
+def check_image():
+    """
+    Check if an uploaded image contains profane/NSFW content.
+    
+    Request:
+        multipart/form-data with 'image' file
+    
+    Response:
+        {
+            "is_profane": bool,
+            "label": str,
+            "confidence": float,
+            "all_scores": dict
+        }
+    """
+    try:
+        # Check if image file is in request
+        if 'image' not in request.files:
+            return jsonify({
+                'error': 'No image file provided'
+            }), 400
+        
+        file = request.files['image']
+        
+        # Check if file was selected
+        if file.filename == '':
+            return jsonify({
+                'error': 'No file selected'
+            }), 400
+        
+        # Check if file type is allowed
+        if not allowed_file(file.filename):
+            return jsonify({
+                'error': f'Invalid file type. Allowed types: {", ".join(ALLOWED_EXTENSIONS)}'
+            }), 400
+        
+        # Save file temporarily
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        try:
+            # Check image for profanity
+            result = image_checker.check_image(filepath)
+            return jsonify(result), 200
+        finally:
+            # Clean up temporary file
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Internal server error: {str(e)}'
+        }), 500
+
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint."""
     return jsonify({
         'status': 'healthy',
-        'model_loaded': profanity_filter is not None
+        'model_loaded': profanity_filter is not None,
+        'image_checker_loaded': image_checker is not None
     }), 200
 
 
@@ -150,6 +219,5 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    # Run the Flask app
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=True)

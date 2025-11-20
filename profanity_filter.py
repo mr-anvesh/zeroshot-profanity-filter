@@ -16,7 +16,7 @@ class ProfanityFilter:
     and censor profane content.
     """
     
-    def __init__(self, model_path: str = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli", threshold: float = 0.5):
+    def __init__(self, model_path: str = "Anvesh18/zeroshot-profanity-filter", threshold: float = 0.5):
         """
         Initialize the profanity filter.
         

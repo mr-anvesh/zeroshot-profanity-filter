@@ -18,6 +18,7 @@
                 <div class="tabs">
                     <button class="tab-button active" data-tab="filter">Filter Text</button>
                     <button class="tab-button" data-tab="check">Check Only</button>
+                    <button class="tab-button" data-tab="image">Check Image</button>
                 </div>
 
                 <!-- Filter Tab -->
@@ -124,6 +125,54 @@
                             <div class="result-item">
                                 <strong>Classification:</strong>
                                 <p id="check-label" class="result-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Check Tab -->
+                <div id="image-tab" class="tab-content">
+                    <div class="input-section">
+                        <label for="image-input">Upload an image to check:</label>
+                        <div class="image-upload-area" id="image-upload-area">
+                            <input type="file" id="image-input" accept="image/*" hidden>
+                            <div class="upload-placeholder" id="upload-placeholder">
+                                <div class="upload-icon">📷</div>
+                                <p>Click to upload or drag and drop</p>
+                                <p class="upload-hint">PNG, JPG, JPEG, GIF, BMP, WEBP (Max 16MB)</p>
+                            </div>
+                            <div class="image-preview" id="image-preview" style="display: none;">
+                                <img id="preview-img" src="" alt="Preview">
+                                <button class="remove-image" id="remove-image">✕</button>
+                            </div>
+                        </div>
+                        
+                        <button id="image-button" class="primary-button" disabled>
+                            <span class="button-text">Check Image</span>
+                            <span class="spinner hidden"></span>
+                        </button>
+                    </div>
+
+                    <div id="image-result" class="result-section hidden">
+                        <h3>Analysis:</h3>
+                        <div class="result-card">
+                            <div class="result-stats">
+                                <div class="stat-badge large" id="image-profane-badge">
+                                    <span class="stat-label">Status:</span>
+                                    <span id="image-profane" class="stat-value large"></span>
+                                </div>
+                                <div class="stat-badge large">
+                                    <span class="stat-label">Confidence:</span>
+                                    <span id="image-confidence" class="stat-value large"></span>
+                                </div>
+                            </div>
+                            <div class="result-item">
+                                <strong>Classification:</strong>
+                                <p id="image-label" class="result-text"></p>
+                            </div>
+                            <div class="result-item" id="image-scores">
+                                <strong>All Scores:</strong>
+                                <div id="image-scores-list"></div>
                             </div>
                         </div>
                     </div>
